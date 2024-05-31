@@ -1,0 +1,30 @@
+# Docker Chess engines
+# dragon
+
+FROM bitnami/minideb:latest AS builder
+LABEL maintainer "Antidote1911 <antidote1911@gmail.com>"
+
+RUN install_packages unzip curl ca-certificates build-essential
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+ENV PATH "/root/.cargo/bin:$PATH"
+
+COPY ./Cargo.toml /
+COPY src/ ./src/
+RUN cargo build --release
+
+ADD https://komodochess.com/pub/dragon.zip ./
+RUN unzip *.zip
+
+############################################################
+
+FROM bitnami/minideb:latest
+## RUN install_packages netcat-traditional ucspi-tcp
+
+COPY ./dragon.sh /
+RUN chmod +x /dragon.sh
+
+COPY --from=builder /target/release/server /dragon/
+COPY --from=builder /dragon_*/Linux/dragon-linux /dragon/dragon
+
+EXPOSE $DRAGON_PORT
+ENTRYPOINT ["/dragon.sh"]

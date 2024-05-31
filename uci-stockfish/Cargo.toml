@@ -1,0 +1,12 @@
+[package]
+name = "server"
+version = "1.0.1"
+authors = ["antidote1911 <antidote1911@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.4.4", features = ["derive","cargo"] }
+
+[[bin]]
+name = "server"
+path = "src/main.rs"

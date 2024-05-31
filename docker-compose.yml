@@ -1,0 +1,29 @@
+services:
+
+  stockfish:
+    container_name: stockfish
+    restart: always
+    build: ./uci-stockfish
+    env_file:
+      - .env
+    ports:
+      - "${STOCKFISH_PORT}:${STOCKFISH_PORT}"
+    networks:
+      - int
+  dragon:
+    container_name: dragon
+    restart: always
+    build: ./uci-dragon
+    env_file:
+      - .env
+    ports:
+      - "${DRAGON_PORT}:${DRAGON_PORT}"
+    networks:
+      - int
+
+networks:
+  ext:
+    driver: bridge
+  int:
+    driver: bridge
+
