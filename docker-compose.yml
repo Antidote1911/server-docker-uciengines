@@ -1,7 +1,7 @@
 services:
 
   stockfish:
-    container_name: stockfish
+    container_name: stockfish_v17
     restart: always
     build: ./uci-stockfish
     env_file:
