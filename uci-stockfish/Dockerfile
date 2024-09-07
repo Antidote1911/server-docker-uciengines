@@ -12,7 +12,7 @@ COPY ./Cargo.toml /
 COPY src/ ./src/
 RUN cargo build --release
 
-RUN git clone --depth 1 --branch sf_16.1 https://github.com/official-stockfish/Stockfish.git
+RUN git clone --depth 1 --branch sf_17 https://github.com/official-stockfish/Stockfish.git
 RUN cd /Stockfish/src && make build ARCH=x86-64-bmi2
 
 ############################################################
