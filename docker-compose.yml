@@ -1,0 +1,27 @@
+services:
+
+  stockfish:
+    container_name: stockfish_v17
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: uci-stockfish/Dockerfile
+      args:
+        PORT: ${STOCKFISH_PORT}
+    env_file:
+      - .env
+    ports:
+      - "${STOCKFISH_PORT}:${STOCKFISH_PORT}"
+
+  dragon:
+    container_name: dragon
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: uci-dragon/Dockerfile
+      args:
+        PORT: ${DRAGON_PORT}
+    env_file:
+      - .env
+    ports:
+      - "${DRAGON_PORT}:${DRAGON_PORT}"
