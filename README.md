@@ -6,7 +6,7 @@
 
 Exposez vos moteurs d'échecs UCI (Stockfish, Dragon, etc.) via **TCP** en utilisant **uciserver**, un serveur ultra-léger compilé en Rust avec binaires statiques MUSL.
 
-> **Compatible avec** : DroidFish (Android), CuteChess, Arena, ChessBase, et tout client utilisant `uciproxy`.
+> **Compatible avec** : DroidFish (Android), CuteChess, Arena, ChessBase, et tout client utilisant [`uciproxy`](./UCIPROXY_GUIDE.md).
 
 ---
 
@@ -17,6 +17,7 @@ Exposez vos moteurs d'échecs UCI (Stockfish, Dragon, etc.) via **TCP** en utili
 - [Installation rapide](#-installation-rapide)
 - [Configuration](#-configuration)
 - [Utilisation](#-utilisation)
+- [Client UCI — uciproxy](#-client-uci--uciproxy)
 - [Architecture](#-architecture)
 - [Déploiement](#-déploiement)
 - [Dépannage](#-dépannage)
@@ -32,19 +33,38 @@ Ce projet fournit une **pile Docker complète** pour exposer des moteurs UCI en 
 - **Multi-conteneurs** : Stockfish + Dragon (extensible)
 - **Multi-stage Docker** : images minimalistes (~15 Mo Stockfish, ~10 Mo Dragon)
 - **Zéro dépendances** : binaires statiques musl, Alpine Linux
+- **uciproxy** : client UCI léger pour connecter des moteurs distants
 
-### Flux de données
+### Flux de données (architecture complète)
 
 ```
-Client UCI
-    ↓
-[TCP Socket]
-    ↓
-uciserver (Rust)
-    ↓
-[stdin/stdout]
-    ↓
-Moteur UCI (Stockfish/Dragon)
+┌────────────────────────────────────────────────────────────────┐
+│                  Logiciel d'échecs (client)                    │
+│        Arena, CuteChess, Droidfish, Chessbase...              │
+└────────────────┬─────────────────────────────────────────────┘
+                 │
+            stdin / stdout
+                 │
+      ┌──────────▼──────────┐
+      │     uciproxy        │  ← Voir UCIPROXY_GUIDE.md
+      │   (moteur "local")  │
+      └──────────┬──────────┘
+                 │
+              [TCP]
+                 │
+      ┌──────────▼──────────────────────┐
+      │  Réseau / Tailscale / VPN...     │
+      └──────────┬──────────────────────┘
+                 │
+   ┌─────────────▼─────────────┐
+   │  Docker / Linux / Unraid  │
+   │  ┌───────────────────────┐ │
+   │  │  [uciserver]          │ │
+   │  │  ┌─────────────────┐  │ │
+   │  │  │ Stockfish/Dragon│  │ │
+   │  │  └─────────────────┘  │ │
+   │  └───────────────────────┘ │
+   └─────────────────────────────┘
 ```
 
 ---
@@ -152,24 +172,36 @@ echo "uci" | nc localhost 8100
 
 ### Avec uciproxy (Windows/Linux)
 
-uciproxy est un outil client qui redirige les requêtes UCI vers un serveur distant.
+Pour exécuter des moteurs **distants** sur votre machine cliente, utilisez **uciproxy**.
 
-#### Setup sur Windows
+👉 **[Voir le guide complet → UCIPROXY_GUIDE.md](./UCIPROXY_GUIDE.md)**
+
+#### Setup rapide (Windows)
 
 ```batch
+:: Télécharger/compiler uciproxy
+cargo build --release
+
 :: Copier l'exécutable
-copy uciproxy.exe remote_stockfish.exe
+copy target/release/uciproxy.exe remote_stockfish.exe
 
 :: Créer le fichier config
 echo 192.168.x.x:8100 > remote_stockfish.txt
 
-:: Dans votre application Chess UI, utiliser remote_stockfish.exe comme moteur
+:: Ajouter dans votre logiciel d'échecs (Arena, CuteChess, etc.)
+:: Utiliser remote_stockfish.exe comme moteur local
 ```
 
-#### Setup sur Linux
+#### Setup rapide (Linux)
 
 ```bash
-cp uciproxy remote_stockfish
+# Compiler
+cargo build --release
+
+# Copier
+cp target/release/uciproxy remote_stockfish
+
+# Config
 echo "192.168.x.x:8100" > remote_stockfish.txt
 
 # Rendre exécutable
@@ -196,7 +228,9 @@ chmod +x remote_stockfish
 ├── docker-compose.yml          # Orchestration des services
 ├── .env.example                # Template environnement
 ├── .gitignore
-└── README.md
+├── README.md
+├── UCIPROXY_GUIDE.md           # Guide complet du client uciproxy
+└── LICENSE
 ```
 
 ### Build multi-stage Dockerfile
@@ -487,9 +521,11 @@ Utilisez [GitHub Issues](https://github.com/Antidote1911/server-docker-uciengine
 ## 📖 Ressources
 
 - [UCI Protocol](http://wbec-ridderkerk.nl/html/UCIProtocol.html)
+- [uciremote — Client uciproxy](https://github.com/Antidote1911/uciremote)
 - [Rust async/await avec Tokio](https://tokio.rs/)
 - [Docker best practices](https://docs.docker.com/develop/dev-best-practices/)
 - [Alpine Linux](https://alpinelinux.org/)
+- [Tailscale VPN](https://tailscale.com/)
 
 ---
 
